@@ -1,0 +1,161 @@
+const express = require("express");
+
+const app = express();
+
+app.get("/", (req, res) => {
+res.send(`
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MineCall</title>
+
+<style>
+body{
+    margin:0;
+    font-family:Arial,sans-serif;
+    background:#1e1e1e;
+    color:white;
+}
+
+#login{
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+    max-width:300px;
+    margin:100px auto;
+}
+
+input{
+    padding:12px;
+    border:none;
+    border-radius:8px;
+}
+
+button{
+    padding:12px;
+    border:none;
+    border-radius:8px;
+    cursor:pointer;
+}
+
+#meet{
+    width:100vw;
+    height:100vh;
+    display:none;
+}
+</style>
+
+<script src="https://meet.jit.si/external_api.js"></script>
+</head>
+
+<body>
+
+<div id="login">
+<h2>MineCall</h2>
+
+<input
+id="nick"
+placeholder="Seu nick do Minecraft"
+/>
+
+<input
+id="sala"
+placeholder="Nome da sala"
+/>
+
+<button onclick="entrar()">
+Entrar
+</button>
+</div>
+
+<div id="meet"></div>
+
+<script>
+
+function iniciarCall(nick,sala){
+
+document.getElementById("login").style.display="none";
+document.getElementById("meet").style.display="block";
+
+const domain = "meet.jit.si";
+
+new JitsiMeetExternalAPI(domain,{
+    roomName:sala,
+    parentNode:document.getElementById("meet"),
+
+    userInfo:{
+        displayName:nick
+    },
+
+    configOverwrite:{
+        startWithAudioMuted:false,
+        startWithVideoMuted:true
+    },
+
+    interfaceConfigOverwrite:{
+        DISABLE_JOIN_LEAVE_NOTIFICATIONS:false
+    }
+});
+}
+
+function entrar(){
+
+const nick =
+document.getElementById("nick").value.trim();
+
+const sala =
+document.getElementById("sala").value.trim();
+
+if(!nick){
+    alert("Digite seu nick");
+    return;
+}
+
+if(!sala){
+    alert("Digite o nome da sala");
+    return;
+}
+
+if(nick.length > 16){
+    alert("Nick muito grande");
+    return;
+}
+
+if(!/^[a-zA-Z0-9_]+$/.test(nick)){
+    alert("Use apenas letras, números e _");
+    return;
+}
+
+localStorage.setItem("minecall_nick",nick);
+localStorage.setItem("minecall_sala",sala);
+
+iniciarCall(nick,sala);
+}
+
+window.onload=()=>{
+
+const nick =
+localStorage.getItem("minecall_nick");
+
+const sala =
+localStorage.getItem("minecall_sala");
+
+if(nick && sala){
+    iniciarCall(nick,sala);
+}
+}
+
+</script>
+
+</body>
+</html>
+`);
+});
+
+const PORT = process.env.PORT || 3000;
+
+app.listen(PORT, () => {
+console.log("Servidor iniciado na porta " + PORT);
+});
