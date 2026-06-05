@@ -3,7 +3,7 @@ const express = require("express");
 const app = express();
 
 app.get("/", (req, res) => {
-res.send(`
+  res.send(`
 <!DOCTYPE html>
 <html>
 <head>
@@ -74,78 +74,72 @@ Entrar
 
 <script>
 
-function iniciarCall(nick,sala){
+function iniciarCall(nick, sala){
 
-document.getElementById("login").style.display="none";
-document.getElementById("meet").style.display="block";
+    document.getElementById("login").style.display = "none";
+    document.getElementById("meet").style.display = "block";
 
-const domain = "meet.jit.si";
+    const domain = "meet.jit.si";
 
-new JitsiMeetExternalAPI(domain,{
-    roomName:sala,
-    parentNode:document.getElementById("meet"),
+    new JitsiMeetExternalAPI(domain, {
+        roomName: sala,
+        parentNode: document.getElementById("meet"),
 
-    userInfo:{
-        displayName:nick
-    },
+        userInfo: {
+            displayName: nick
+        },
 
-    configOverwrite:{
-        startWithAudioMuted:false,
-        startWithVideoMuted:true
-    },
+        configOverwrite: {
+            startWithAudioMuted: false,
+            startWithVideoMuted: true
+        },
 
-    interfaceConfigOverwrite:{
-        DISABLE_JOIN_LEAVE_NOTIFICATIONS:false
-    }
-});
+        interfaceConfigOverwrite: {
+            DISABLE_JOIN_LEAVE_NOTIFICATIONS: false
+        }
+    });
 }
 
 function entrar(){
 
-const nick =
-document.getElementById("nick").value.trim();
+    const nick = document.getElementById("nick").value.trim();
+    const sala = document.getElementById("sala").value.trim();
 
-const sala =
-document.getElementById("sala").value.trim();
+    if(!nick){
+        alert("Digite seu nick");
+        return;
+    }
 
-if(!nick){
-    alert("Digite seu nick");
-    return;
+    if(!sala){
+        alert("Digite o nome da sala");
+        return;
+    }
+
+    if(nick.length > 16){
+        alert("Nick muito grande");
+        return;
+    }
+
+    if(!/^[a-zA-Z0-9_]+$/.test(nick)){
+        alert("Use apenas letras, números e _");
+        return;
+    }
+
+    localStorage.setItem("minecall_nick", nick);
+    localStorage.setItem("minecall_sala", sala);
+
+    iniciarCall(nick, sala);
 }
 
-if(!sala){
-    alert("Digite o nome da sala");
-    return;
-}
+window.onload = () => {
 
-if(nick.length > 16){
-    alert("Nick muito grande");
-    return;
-}
+    const nick = localStorage.getItem("minecall_nick");
+    const sala = localStorage.getItem("minecall_sala");
 
-if(!/^[a-zA-Z0-9_]+$/.test(nick)){
-    alert("Use apenas letras, números e _");
-    return;
-}
-
-localStorage.setItem("minecall_nick",nick);
-localStorage.setItem("minecall_sala",sala);
-
-iniciarCall(nick,sala);
-}
-
-window.onload=()=>{
-
-const nick =
-localStorage.getItem("minecall_nick");
-
-const sala =
-localStorage.getItem("minecall_sala");
-
-if(nick && sala){
-    iniciarCall(nick,sala);
-}
-}
+    if(nick && sala){
+        iniciarCall(nick, sala);
+    }
+};
 
 </script>
 
@@ -157,5 +151,5 @@ if(nick && sala){
 const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => {
-console.log("Servidor iniciado na porta " + PORT);
+  console.log("Servidor iniciado na porta " + PORT);
 });
