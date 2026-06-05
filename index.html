@@ -165,7 +165,7 @@
   <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
   <script>
     // URL DA SUA API / BACKEND
-    const BACKEND_URL = "https://call-29og.onrender.com";
+    const BACKEND_URL = "https://call-29og.onrender.com/";
 
     // Conecta passando a URL explicitamente
     const socket = io(BACKEND_URL);
@@ -330,4 +330,88 @@
       isMuted = !isMuted;
       localStream.getAudioTracks()[0].enabled = !isMuted;
       const muteBtn = document.getElementById('mute-btn');
-      muteBtn.innerText = isMuted ? '
+      muteBtn.innerText = isMuted ? '🔇' : '🎙️';
+      if (isMuted) muteBtn.classList.add('muted');
+      else muteBtn.classList.remove('muted');
+    }
+
+    function toggleSidebar(show) {
+      const sidebar = document.getElementById('sidebar');
+      const backdrop = document.getElementById('backdrop');
+      if (show) {
+        sidebar.classList.add('open');
+        backdrop.classList.add('show');
+      } else {
+        sidebar.classList.remove('open');
+        if(!document.getElementById('settings-panel').classList.contains('open')) {
+            backdrop.classList.remove('show');
+        }
+      }
+    }
+
+    function toggleSettings(show) {
+      const panel = document.getElementById('settings-panel');
+      const backdrop = document.getElementById('backdrop');
+      toggleSidebar(false);
+
+      if (show) {
+        panel.classList.remove('hidden');
+        setTimeout(() => {
+            panel.classList.add('open');
+            backdrop.classList.add('show');
+        }, 10);
+      } else {
+        panel.classList.remove('open');
+        backdrop.classList.remove('show');
+        setTimeout(() => panel.classList.add('hidden'), 300);
+      }
+    }
+
+    function closeAllPanels() {
+        toggleSidebar(false);
+        toggleSettings(false);
+    }
+
+    function processAvatar(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          canvas.width = 120;
+          canvas.height = 120;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, 120, 120);
+          base64Avatar = canvas.toDataURL('image/jpeg', 0.7);
+        };
+        img.src = event.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function saveSettings() {
+      const newPassword = document.getElementById('edit-password').value;
+      if (!newPassword.trim()) {
+         alert("A senha não pode estar vazia.");
+         return;
+      }
+      const payload = { password: newPassword };
+      if (base64Avatar) payload.avatar = base64Avatar;
+      
+      socket.emit('update-password', payload);
+      if (base64Avatar) document.getElementById('my-avatar').src = base64Avatar;
+      toggleSettings(false);
+    }
+
+    function handleLogout() {
+      localStorage.removeItem('discord_session');
+      if (localStream) localStream.getTracks().forEach(track => track.stop());
+      Object.keys(peers).forEach(id => peers[id].close());
+      socket.disconnect();
+      window.location.reload();
+    }
+  </script>
+</body>
+</html>
